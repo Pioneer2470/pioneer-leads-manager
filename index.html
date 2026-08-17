@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pioneer Powersports — Lead Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="deck-pattern" aria-hidden="true"></div>
+
+<!-- ===================== AUTH SCREEN ===================== -->
+<div class="auth-screen" id="authScreen" hidden>
+  <div class="auth-card">
+    <div class="brand-mark auth-mark">PPS</div>
+    <span class="eyebrow">Pioneer Powersports</span>
+    <h1 class="auth-title">Lead Desk</h1>
+
+    <!-- First-run setup -->
+    <form id="setupForm" class="auth-form" hidden>
+      <p class="auth-sub">Create the admin account to get started.</p>
+      <label class="field"><span>Your name</span><input type="text" name="name" required></label>
+      <label class="field"><span>Username</span><input type="text" name="username" autocomplete="username" required></label>
+      <label class="field"><span>Password</span><input type="password" name="password" autocomplete="new-password" minlength="6" required></label>
+      <p class="field-hint">At least 6 characters.</p>
+      <button type="submit" class="btn btn-accent btn-block">Create admin account</button>
+      <p class="auth-error" id="setupError" hidden></p>
+    </form>
+
+    <!-- Login -->
+    <form id="loginForm" class="auth-form" hidden>
+      <p class="auth-sub">Sign in to your account.</p>
+      <label class="field"><span>Username</span><input type="text" name="username" autocomplete="username" required></label>
+      <label class="field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label>
+      <button type="submit" class="btn btn-accent btn-block">Sign in</button>
+      <p class="auth-error" id="loginError" hidden></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="appScreen" hidden>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">PPS</div>
+      <div class="brand-text">
+        <span class="eyebrow">Pioneer Powersports</span>
+        <h1>Lead Desk</h1>
+      </div>
+    </div>
+
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-view="leads">Leads</button>
+      <button class="nav-tab" data-view="repsDashboard" id="navRepsDashboard" hidden>Reps Dashboard</button>
+      <button class="nav-tab" data-view="manageReps" id="navManageReps" hidden>Manage Reps</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="user-badge">
+        <span class="user-name" id="userName"></span>
+        <span class="user-role" id="userRole"></span>
+      </div>
+      <button class="btn btn-ghost" id="logoutBtn">Log out</button>
+      <button class="btn btn-accent" id="openNewLead">+ New Lead</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ============ LEADS VIEW ============ -->
+    <section id="view-leads">
+      <section class="stats" id="stats" aria-label="Lead pipeline summary"></section>
+      <section class="pipeline-strip" id="pipelineStrip" aria-label="Pipeline stages"></section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <div class="search-field">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M7 12.5A5.5 5.5 0 1 0 7 1.5a5.5 5.5 0 0 0 0 11Zm7 2-3.1-3.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <input type="text" id="searchInput" placeholder="Search name, phone, email, model…">
+          </div>
+          <select id="filterStatus"></select>
+          <select id="filterInterest"></select>
+          <select id="filterSource"></select>
+          <select id="filterRep" hidden></select>
+          <select id="sortSelect">
+            <option value="createdAt_desc">Newest first</option>
+            <option value="createdAt_asc">Oldest first</option>
+            <option value="lastName_asc">Name A–Z</option>
+            <option value="status_asc">Status</option>
+          </select>
+          <span class="result-count" id="resultCount"></span>
+        </div>
+
+        <div class="table-scroll">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>Interest</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Assigned Rep</th>
+                <th>Updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="leadsBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState" hidden>
+            <p class="empty-title">No leads on the board</p>
+            <p class="empty-sub">New walk-ins, calls, and web inquiries will show up here.</p>
+            <button class="btn btn-accent" id="emptyNewLead">+ New Lead</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ REPS DASHBOARD VIEW (admin) ============ -->
+    <section id="view-repsDashboard" hidden>
+      <div class="view-header">
+        <h2>Reps Dashboard</h2>
+        <p class="view-sub">Pipeline progress for every sales rep.</p>
+      </div>
+      <div class="rep-cards" id="repCards"></div>
+    </section>
+
+    <!-- ============ MANAGE REPS VIEW (admin) ============ -->
+    <section id="view-manageReps" hidden>
+      <div class="view-header">
+        <h2>Manage Reps</h2>
+        <p class="view-sub">Create and manage sales rep accounts.</p>
+        <button class="btn btn-accent" id="openNewRep">+ New Rep Account</button>
+      </div>
+      <section class="panel">
+        <table class="leads-table">
+          <thead>
+            <tr><th>Name</th><th>Username</th><th>Status</th><th>Created</th><th></th></tr>
+          </thead>
+          <tbody id="repsBody"></tbody>
+        </table>
+      </section>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== Lead Modal ===================== -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div>
+        <span class="eyebrow" id="modalEyebrow">New Lead</span>
+        <h2 id="modalTitle">Log a lead</h2>
+      </div>
+      <button class="icon-btn" id="closeModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="leadForm">
+        <div class="field-grid">
+          <label class="field"><span>First name</span><input type="text" name="firstName" required></label>
+          <label class="field"><span>Last name</span><input type="text" name="lastName" required></label>
+          <label class="field"><span>Phone</span><input type="tel" name="phone" placeholder="(555) 555-0134"></label>
+          <label class="field"><span>Email</span><input type="email" name="email" placeholder="name@example.com"></label>
+          <label class="field"><span>Interest type</span><select name="interestType"></select></label>
+          <label class="field"><span>Model / unit interested in</span><input type="text" name="interestModel" placeholder="e.g. 2026 YZ450F"></label>
+          <label class="field"><span>Source</span><select name="source"></select></label>
+          <label class="field"><span>Budget (est.)</span><input type="number" name="budget" placeholder="15000" min="0" step="100"></label>
+          <label class="field" id="assignedRepField"><span>Assigned rep</span><select name="assignedRepId"></select></label>
+          <label class="field" id="statusField" hidden><span>Status</span><select name="status"></select></label>
+        </div>
+
+        <div id="pipelineControl" class="pipeline-control" hidden></div>
+
+        <div id="activitySection" class="activity-section" hidden>
+          <span class="field-label">Activity</span>
+          <div class="activity-log" id="activityLog"></div>
+          <div class="add-note-row">
+            <input type="text" id="noteInput" placeholder="Add a note — call attempted, follow-up scheduled…">
+            <button type="button" class="btn btn-ghost" id="addNoteBtn">Add</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="deleteLeadBtn" hidden>Delete lead</button>
+      <div class="footer-right">
+        <button class="btn btn-ghost" id="cancelModal">Cancel</button>
+        <button class="btn btn-accent" id="saveLeadBtn">Save lead</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== Rep Account Modal ===================== -->
+<div class="modal-overlay" id="repModalOverlay" hidden>
+  <div class="modal modal-narrow" role="dialog" aria-modal="true" aria-labelledby="repModalTitle">
+    <div class="modal-header">
+      <div>
+        <span class="eyebrow" id="repModalEyebrow">New Rep</span>
+        <h2 id="repModalTitle">Create rep account</h2>
+      </div>
+      <button class="icon-btn" id="closeRepModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="repForm">
+        <label class="field"><span>Full name</span><input type="text" name="name" required></label>
+        <label class="field"><span>Username</span><input type="text" name="username" autocomplete="off" required></label>
+        <label class="field" id="repPasswordField"><span>Temporary password</span><input type="password" name="password" minlength="6" autocomplete="new-password"></label>
+        <p class="field-hint" id="repPasswordHint">At least 6 characters. Share it with the rep — they can sign in right away.</p>
+        <label class="field-inline" id="repActiveField" hidden>
+          <input type="checkbox" name="active">
+          <span>Account active</span>
+        </label>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <div class="footer-right" style="margin-left:auto;">
+        <button class="btn btn-ghost" id="cancelRepModal">Cancel</button>
+        <button class="btn btn-accent" id="saveRepBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
